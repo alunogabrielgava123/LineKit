@@ -300,9 +300,22 @@ export function setShapeBorderRadius(radius: number) {
   store.notify();
 }
 
+// Text cursor actions
+export function setTextCursorPos(pos: number) {
+  state.textCursorPos = pos;
+}
+
+export function setTextSelectionStart(start: number | null) {
+  state.textSelectionStart = start;
+}
+
 // Active element actions
 export function setActiveTextBlock(block: TextBlock | null) {
   state.activeTextBlock = block;
+  if (block) {
+    state.textCursorPos = block.text.length;
+    state.textSelectionStart = null;
+  }
   store.notify();
 }
 

@@ -2,7 +2,9 @@ import type { Tool, SelectionInfo } from '../types';
 import { store } from '../state/store';
 import * as actions from '../state/actions';
 import { getCanvasPoint, getSelectionBoundingBox, getBoundingBox, boxesIntersect } from '../utils/geometry';
-import { drawPath, drawText, drawShape, drawArrow, drawSelectionUI, drawLineSelectionUI, drawMarquee, drawLine, drawElementBoundingBox } from './renderer';
+import { drawSelectionUI, drawLineSelectionUI, drawMarquee, drawElementBoundingBox } from './renderer';
+import { renderElement } from './elementRenderers';
+import { drawText } from './tools/TextTool';
 import { tools } from './tools';
 import type { ToolContext } from './tools';
 
@@ -31,42 +33,26 @@ export function createCanvas(element: HTMLCanvasElement) {
 
     // Draw all elements
     for (const el of state.elements) {
-      if (el.type === 'path') {
-        drawPath(ctx, el.data);
-      } else if (el.type === 'text') {
-        drawText(ctx, el.data);
-      } else if (el.type === 'shape') {
-        drawShape(ctx, el.data);
-      } else if (el.type === 'arrow') {
-        drawArrow(ctx, el.data);
-      } else if (el.type === 'line') {
-        drawLine(ctx, el.data);
-      }
+      renderElement(ctx, el);
     }
 
-    // Draw current path being drawn
+    // Draw in-progress elements
     if (state.currentPath) {
-      drawPath(ctx, state.currentPath);
+      renderElement(ctx, { type: 'path', data: state.currentPath });
     }
-
-    // Draw current shape being created
     if (state.currentShape) {
-      drawShape(ctx, state.currentShape);
+      renderElement(ctx, { type: 'shape', data: state.currentShape });
     }
-
-    // Draw current arrow being created
     if (state.currentArrow) {
-      drawArrow(ctx, state.currentArrow);
+      renderElement(ctx, { type: 'arrow', data: state.currentArrow });
     }
-
-    // Draw active text block
-    if (state.activeTextBlock) {
-      drawText(ctx, state.activeTextBlock, true);
-    }
-
-    // Draw current line being created;
     if (state.currentLine) {
-      drawLine(ctx, state.currentLine);
+      renderElement(ctx, { type: 'line', data: state.currentLine });
+    }
+
+    // Draw active text block (with cursor and selection)
+    if (state.activeTextBlock) {
+      drawText(ctx, state.activeTextBlock, true, state.textCursorPos, state.textSelectionStart);
     }
 
     // Draw selection UI
@@ -199,6 +185,27 @@ export function createCanvas(element: HTMLCanvasElement) {
     render();
   }
 
+  // Cursor blink timer for text editing
+  let cursorBlinkInterval: ReturnType<typeof setInterval> | null = null;
+
+  function startCursorBlink() {
+    if (cursorBlinkInterval) return;
+    cursorBlinkInterval = setInterval(() => {
+      if (state.activeTextBlock) {
+        render();
+      } else {
+        stopCursorBlink();
+      }
+    }, 530);
+  }
+
+  function stopCursorBlink() {
+    if (cursorBlinkInterval) {
+      clearInterval(cursorBlinkInterval);
+      cursorBlinkInterval = null;
+    }
+  }
+
   // Event listeners
   element.addEventListener('mousedown', handleMouseDown);
   element.addEventListener('mousemove', handleMouseMove);
@@ -209,7 +216,14 @@ export function createCanvas(element: HTMLCanvasElement) {
   window.addEventListener('resize', resize);
 
   // Subscribe to state changes
-  store.subscribe(render);
+  store.subscribe(() => {
+    if (state.activeTextBlock) {
+      startCursorBlink();
+    } else {
+      stopCursorBlink();
+    }
+    render();
+  });
 
   // Initialize
   resize();

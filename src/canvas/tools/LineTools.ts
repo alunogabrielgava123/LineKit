@@ -1,8 +1,33 @@
 import { store } from "../../state";
-import type { Point } from "../../types";
+import type { Point, Line } from "../../types";
 import type { BaseTool, ToolContext } from "./BaseTool";
 import * as actions from '../../state/actions';
+import { registerRenderer } from '../elementRenderers';
 
+function drawLine(ctx: CanvasRenderingContext2D, line: Line) {
+  const { startX, startY, endX, endY, color, opacity, lineWidth, controlX, controlY } = line;
+
+  ctx.save();
+  ctx.globalAlpha = opacity ?? 1;
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  if (controlX !== undefined && controlY !== undefined) {
+    ctx.quadraticCurveTo(controlX, controlY, endX, endY);
+  } else {
+    ctx.lineTo(endX, endY);
+  }
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+registerRenderer('line', drawLine);
 
 export const LineTool: BaseTool = {
     name: "line",

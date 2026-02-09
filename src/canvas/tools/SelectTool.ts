@@ -330,14 +330,14 @@ export const SelectTool: BaseTool = {
         state.elements.splice(index, 1);
       }
 
-      // Make it the active text block for editing
-      actions.setActiveTextBlock(hitElement.data);
+      // Switch to text tool FIRST (this clears activeTextBlock)
       actions.clearSelection();
       actions.setSelectionRotation(0);
-
-      // Switch to text tool
       actions.setTool('text');
       context.canvas.style.cursor = 'text';
+
+      // THEN set the text block for editing (cursor goes to end)
+      actions.setActiveTextBlock(hitElement.data);
 
       context.render();
     }

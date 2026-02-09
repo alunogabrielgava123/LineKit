@@ -70,6 +70,10 @@ interface State {
   shapeStrokeWidth: number;
   shapeBorderRadius: number;
 
+  // Text editing cursor state (transient, not persisted)
+  textCursorPos: number;
+  textSelectionStart: number | null;
+
   // Active elements (being created/edited)
   activeTextBlock: TextBlock | null;
   currentPath: DrawPath | null;
@@ -99,10 +103,38 @@ interface State {
   initialRotation: number;
 }
 
+const STORAGE_KEY = 'g-draw-elements';
+
+function loadElements(): CanvasElement[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {
+    // ignore corrupt data
+  }
+  return [];
+}
+
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function saveElements(elements: CanvasElement[]) {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
+    } catch {
+      // storage full or unavailable
+    }
+  }, 300);
+}
+
 function createStore() {
   const state: State = {
     // Elements
-    elements: [],
+    elements: loadElements(),
 
     // History
     past: [],
@@ -134,6 +166,10 @@ function createStore() {
     shapeStrokeOpacity: DEFAULT_SHAPE_STROKE_OPACITY,
     shapeStrokeWidth: DEFAULT_SHAPE_STROKE_WIDTH,
     shapeBorderRadius: DEFAULT_SHAPE_BORDER_RADIUS,
+
+    // Text editing cursor
+    textCursorPos: 0,
+    textSelectionStart: null,
 
     // Active elements
     activeTextBlock: null,
@@ -172,6 +208,7 @@ function createStore() {
   const MAX_HISTORY = 100; // Limite de estados no histórico
 
   function notify() {
+    saveElements(state.elements);
     for (const listener of listeners) {
       listener();
     }
