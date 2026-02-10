@@ -18,7 +18,7 @@ export interface ElementHandler<T> {
   ): void;
 
   /** Rotaciona o elemento em relação a um ponto pivô */
-  rotate(data: T, angle: number, pivotX: number, pivotY: number): void;
+  rotate(data: T, angle: number, pivotX: number, pivotY: number, ctx?: CanvasRenderingContext2D): void;
 
   /** Calcula o bounding box do elemento */
   getBoundingBox(data: T, ctx: CanvasRenderingContext2D): BoundingBox | null;

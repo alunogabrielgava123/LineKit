@@ -13,6 +13,7 @@ export interface TextBlock {
   x: number;
   y: number;
   fontSize: number;
+  fontFamily: string;
   fontStyle: FontStyle;
   color: string;
   opacity: number;

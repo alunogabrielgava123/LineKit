@@ -15,6 +15,7 @@ import type {
 } from '../types';
 import {
   DEFAULT_TEXT_SIZE,
+  DEFAULT_TEXT_FONT_FAMILY,
   DEFAULT_TEXT_COLOR,
   DEFAULT_TEXT_OPACITY,
   DEFAULT_STROKE_WIDTH,
@@ -56,6 +57,7 @@ interface State {
 
   // Tool settings
   textSize: number;
+  textFontFamily: string;
   textStyle: FontStyle;
   textColor: string;
   textOpacity: number;
@@ -153,6 +155,7 @@ function createStore() {
 
     // Tool settings
     textSize: DEFAULT_TEXT_SIZE,
+    textFontFamily: DEFAULT_TEXT_FONT_FAMILY,
     textStyle: 'normal',
     textColor: DEFAULT_TEXT_COLOR,
     textOpacity: DEFAULT_TEXT_OPACITY,

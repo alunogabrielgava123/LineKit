@@ -8,7 +8,9 @@ export function getBoundingBox(el: CanvasElement, ctx: CanvasRenderingContext2D)
     const lineHeight = block.fontSize * 1.25;
     let maxWidth = 0;
 
-    ctx.font = `${block.fontSize}px sans-serif`;
+    const fontWeight = block.fontStyle === 'bold' ? 'bold' : 'normal';
+    const fontStyleCss = block.fontStyle === 'italic' ? 'italic' : 'normal';
+    ctx.font = `${fontStyleCss} ${fontWeight} ${block.fontSize}px ${block.fontFamily || 'sans-serif'}`;
     for (const line of lines) {
       const width = ctx.measureText(line).width;
       if (width > maxWidth) maxWidth = width;

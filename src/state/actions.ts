@@ -151,6 +151,19 @@ export function setTextSize(size: number) {
   store.notify();
 }
 
+export function setTextFontFamily(family: string) {
+  state.textFontFamily = family;
+  if (state.activeTextBlock) {
+    state.activeTextBlock.fontFamily = family;
+  }
+  for (const el of state.selectedElements) {
+    if (el.type === 'text') {
+      el.data.fontFamily = family;
+    }
+  }
+  store.notify();
+}
+
 export function setTextStyle(style: FontStyle) {
   state.textStyle = style;
   // 

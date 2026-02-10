@@ -14,6 +14,11 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </svg>
     </button>
     <div id='menu-dropdown' class='hidden'>
+      <div class='menu-coming-soon'>
+        <span class='menu-coming-soon-icon'>🚀</span>
+        <span class='menu-coming-soon-text'>Menu options coming soon!</span>
+        <span class='menu-coming-soon-subtitle'>More features will be available here</span>
+      </div>
     </div>
   </div>
   <div id='toolbar'>
@@ -45,7 +50,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         <line x1="12" y1="4" x2="12" y2="20"></line>
       </svg>
     </button>
-    <button id='tool-shape' class='tool-btn' title='Formas'>
+    <button id='tool-shape' class='tool-btn' title='Shapes'>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
       </svg>
@@ -62,7 +67,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </button>
   </div>
   <div id='shape-panel' class='hidden'>
-    <span class='panel-label'>Formas</span>
+    <span class='panel-label'>Shapes</span>
     <div class='shape-grid'>
       <button class='shape-item active' data-shape='rectangle' title='Retângulo'>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -139,6 +144,33 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
   <div id='side-panel' class='hidden'>
     <div id='text-options' class='panel-section hidden'>
+      <span class='panel-label'>Font</span>
+      <div class='font-select-wrapper'>
+        <button id='font-trigger' class='font-trigger' style='font-family: Inter, sans-serif'>Inter
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
+        <div id='font-dropdown' class='font-dropdown hidden'>
+          <button class='font-option active' data-font='Inter, sans-serif' data-label='Inter' style='font-family: Inter, sans-serif'>Inter</button>
+          <button class='font-option' data-font='DM Sans, sans-serif' data-label='DM Sans' style='font-family: DM Sans, sans-serif'>DM Sans</button>
+          <button class='font-option' data-font='Poppins, sans-serif' data-label='Poppins' style='font-family: Poppins, sans-serif'>Poppins</button>
+          <button class='font-option' data-font='Space Grotesk, sans-serif' data-label='Space Grotesk' style='font-family: Space Grotesk, sans-serif'>Space Grotesk</button>
+          <button class='font-option' data-font='Sora, sans-serif' data-label='Sora' style='font-family: Sora, sans-serif'>Sora</button>
+          <button class='font-option' data-font='Outfit, sans-serif' data-label='Outfit' style='font-family: Outfit, sans-serif'>Outfit</button>
+          <button class='font-option' data-font='Raleway, sans-serif' data-label='Raleway' style='font-family: Raleway, sans-serif'>Raleway</button>
+          <button class='font-option' data-font='Merriweather, serif' data-label='Merriweather' style='font-family: Merriweather, serif'>Merriweather</button>
+          <button class='font-option' data-font='Playfair Display, serif' data-label='Playfair Display' style='font-family: Playfair Display, serif'>Playfair Display</button>
+          <button class='font-option' data-font='Abril Fatface, serif' data-label='Abril Fatface' style='font-family: Abril Fatface, serif'>Abril Fatface</button>
+          <button class='font-option' data-font='Lobster, cursive' data-label='Lobster' style='font-family: Lobster, cursive'>Lobster</button>
+          <button class='font-option' data-font='JetBrains Mono, monospace' data-label='JetBrains Mono' style='font-family: JetBrains Mono, monospace'>JetBrains Mono</button>
+          <button class='font-option' data-font='Fira Code, monospace' data-label='Fira Code' style='font-family: Fira Code, monospace'>Fira Code</button>
+          <button class='font-option' data-font='Inconsolata, monospace' data-label='Inconsolata' style='font-family: Inconsolata, monospace'>Inconsolata</button>
+          <button class='font-option' data-font='Caveat, cursive' data-label='Caveat' style='font-family: Caveat, cursive'>Caveat</button>
+          <button class='font-option' data-font='Dancing Script, cursive' data-label='Dancing Script' style='font-family: Dancing Script, cursive'>Dancing Script</button>
+          <button class='font-option' data-font='Pacifico, cursive' data-label='Pacifico' style='font-family: Pacifico, cursive'>Pacifico</button>
+          <button class='font-option' data-font='Permanent Marker, cursive' data-label='Permanent Marker' style='font-family: Permanent Marker, cursive'>Permanent Marker</button>
+          <button class='font-option' data-font='Bebas Neue, sans-serif' data-label='Bebas Neue' style='font-family: Bebas Neue, sans-serif'>Bebas Neue</button>
+        </div>
+      </div>
       <span class='panel-label'>Font size</span>
       <div class='panel-buttons'>
         <button class='size-btn' data-size='16'>S</button>

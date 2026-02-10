@@ -171,7 +171,7 @@ export const SelectTool: BaseTool = {
         const deltaAngle = currentAngle - state.initialRotation;
 
         for (const el of state.selectedElements) {
-          rotateElement(el, deltaAngle, state.rotationCenter.x, state.rotationCenter.y);
+          rotateElement(el, deltaAngle, state.rotationCenter.x, state.rotationCenter.y, context.ctx);
         }
         actions.setSelectionRotation(state.selectionRotation + deltaAngle);
         actions.setInitialRotation(currentAngle);

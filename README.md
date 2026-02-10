@@ -1,374 +1,158 @@
-# G-Draw
-
-Aplicação de desenho em canvas com arquitetura modular.
-
-## Estrutura do Projeto
-
-```
-src/
-├── main.ts                     # Entry point
-├── style.css                   # Estilos globais
-├── constants.ts                # Constantes da aplicação
-├── types/                      # Tipos TypeScript centralizados
-├── state/                      # Gerenciamento de estado
-├── canvas/                     # Core do canvas
-│   └── tools/                  # Ferramentas de desenho
-├── components/                 # Componentes de UI
-└── utils/                      # Utilitários
-```
-
-## Arquitetura
-
-### 1. Types (`src/types/index.ts`)
-
-Todos os tipos TypeScript centralizados em um único lugar:
-
-```typescript
-// Tipos de ferramentas
-type Tool = 'select' | 'move' | 'draw' | 'text' | 'shape' | 'arrow';
-type ShapeType = 'triangle' | 'square' | 'rectangle' | 'circle' | ...;
-
-// Tipos de elementos
-interface TextBlock { text, x, y, fontSize, fontStyle, color, rotation }
-interface DrawPath { points, lineWidth, color, rotation, centerX, centerY }
-interface Shape { shapeType, x, y, width, height, fillColor, strokeColor, ... }
-interface Arrow { startX, startY, endX, endY, color, lineWidth }
-
-// União de todos os elementos do canvas
-type CanvasElement =
-  | { type: 'text'; data: TextBlock }
-  | { type: 'path'; data: DrawPath }
-  | { type: 'shape'; data: Shape }
-  | { type: 'arrow'; data: Arrow };
-```
-
-### 2. Constants (`src/constants.ts`)
-
-Valores constantes usados em toda a aplicação:
-
-```typescript
-// Handles de seleção
-export const HANDLE_SIZE = 8;
-export const ROTATE_HANDLE_OFFSET = 24;
-
-// Zoom
-export const MIN_SCALE = 0.25;
-export const MAX_SCALE = 4;
-export const ZOOM_FACTOR = 1.2;
-
-// Configurações padrão
-export const DEFAULT_TEXT_SIZE = 24;
-export const DEFAULT_STROKE_WIDTH = 4;
-// ...
-```
-
-### 3. State Management (`src/state/`)
-
-Gerenciamento de estado centralizado usando padrão pub/sub:
-
-#### `store.ts` - Estado Global
-
-```typescript
-// O store mantém todo o estado da aplicação
-const state = {
-  elements: [],              // Elementos no canvas
-  selectedElements: Set(),   // Elementos selecionados
-  currentTool: 'select',     // Ferramenta ativa
-  offset: { x: 0, y: 0 },    // Pan do canvas
-  scale: 1,                  // Zoom
-  // ... configurações de ferramentas
-};
-
-// Sistema de subscriptions
-store.subscribe(listener);           // Notificado em qualquer mudança
-store.subscribeToSelection(listener); // Notificado em mudanças de seleção
-store.subscribeToTool(listener);      // Notificado em mudanças de ferramenta
-```
-
-#### `actions.ts` - Modificação do Estado
-
-Todas as modificações de estado passam por actions:
-
-```typescript
-// Elementos
-addElement(element);
-removeElement(element);
-removeSelectedElements();
-
-// Seleção
-selectElement(element, addToSelection?);
-deselectElement(element);
-clearSelection();
-
-// Ferramentas
-setTool(tool);
-setTextSize(size);
-setStrokeColor(color);
-// ...
-
-// View
-zoomIn(centerX, centerY);
-zoomOut(centerX, centerY);
-setOffset(point);
-```
-
-#### `selectors.ts` - Leitura do Estado
-
-Funções para ler estado derivado:
-
-```typescript
-getElements();
-getSelectedElements();
-getCurrentTool();
-getSelectionInfo();  // { hasText, hasPath, hasShape, hasArrow, count }
-getMarqueeBox();
-// ...
-```
-
-### 4. Canvas (`src/canvas/`)
-
-#### `Canvas.ts` - Classe Principal
-
-Orquestra renderização, eventos e ferramentas:
-
-```typescript
-const canvas = createCanvas(canvasElement);
-
-// Retorna API pública
-canvas.setTool('draw');
-canvas.setTextSize(24);
-canvas.zoomIn();
-canvas.onSelectionChange((info) => { ... });
-canvas.onToolChange((tool) => { ... });
-```
-
-#### `renderer.ts` - Funções de Renderização
-
-Funções puras para desenhar elementos:
-
-```typescript
-drawPath(ctx, path);
-drawText(ctx, textBlock, showCursor?);
-drawShape(ctx, shape);
-drawArrow(ctx, arrow);
-drawSelectionUI(ctx, boundingBox, rotation);
-drawMarquee(ctx, startX, startY, endX, endY);
-```
-
-#### `tools/` - Sistema de Ferramentas
-
-Cada ferramenta implementa a interface `BaseTool`:
-
-```typescript
-interface BaseTool {
-  name: string;
-  cursor: string;
-
-  onActivate?(context): void;
-  onDeactivate?(context): void;
-  onMouseDown?(e, point, context): void;
-  onMouseMove?(e, point, context): void;
-  onMouseUp?(e, point, context): void;
-  onDoubleClick?(e, point, context): void;
-  onKeyDown?(e, context): void;
-}
-```
-
-**Ferramentas disponíveis:**
-
-| Ferramenta | Arquivo | Descrição |
-|------------|---------|-----------|
-| Select | `SelectTool.ts` | Seleção, arraste, resize e rotação |
-| Move | `MoveTool.ts` | Pan do canvas |
-| Draw | `DrawTool.ts` | Desenho livre |
-| Text | `TextTool.ts` | Inserção de texto |
-| Shape | `ShapeTool.ts` | Formas geométricas |
-| Arrow | `ArrowTool.ts` | Setas |
-
-**Exemplo de ferramenta:**
-
-```typescript
-// DrawTool.ts
-export const DrawTool: BaseTool = {
-  name: 'draw',
-  cursor: 'crosshair',
-
-  onActivate(context) {
-    context.canvas.style.cursor = 'crosshair';
-  },
-
-  onMouseDown(_e, point, _context) {
-    actions.setIsDrawing(true);
-    actions.setCurrentPath({
-      points: [point],
-      lineWidth: state.strokeWidth,
-      color: state.strokeColor,
-      // ...
-    });
-  },
-
-  onMouseMove(_e, point, context) {
-    if (state.isDrawing && state.currentPath) {
-      state.currentPath.points.push(point);
-      context.render();
-    }
-  },
-
-  onMouseUp() {
-    actions.commitCurrentPath();
-  },
-};
-```
-
-### 5. Components (`src/components/`)
-
-Componentes de UI que conectam ao canvas:
-
-```typescript
-// Toolbar.ts - Barra de ferramentas
-setupToolbar(canvas);
-
-// ShapePanel.ts - Painel de formas
-setupShapePanel(canvas);
-
-// SidePanel.ts - Painel lateral com opções
-setupSidePanel(canvas);
-
-// ZoomControls.ts - Controles de zoom
-setupZoomControls(canvas);
-```
-
-Cada componente:
-1. Configura event listeners nos elementos DOM
-2. Chama métodos do canvas quando o usuário interage
-3. Se inscreve em mudanças de estado para atualizar a UI
-
-### 6. Utils (`src/utils/`)
-
-#### `geometry.ts` - Cálculos Geométricos
-
-```typescript
-getBoundingBox(element, ctx);           // Bounding box de um elemento
-getSelectionBoundingBox(elements, ctx); // Bounding box da seleção
-boxesIntersect(a, b);                   // Teste de interseção
-hitTest(point, elements, ctx);          // Encontra elemento sob o cursor
-hitTestHandle(point, box, rotation);    // Testa handles de seleção
-getCanvasPoint(event, offset, scale);   // Converte coordenadas de tela
-```
-
-#### `transform.ts` - Transformações
-
-```typescript
-moveElement(element, dx, dy);
-scaleElement(element, scaleX, scaleY, centerX, centerY);
-rotateElement(element, angle, pivotX, pivotY);
-```
-
-#### `dom.ts` - Helpers DOM
-
-```typescript
-$(selector);        // querySelector com tipo
-$all(selector);     // querySelectorAll
-show(element);      // Remove classe 'hidden'
-hide(element);      // Adiciona classe 'hidden'
-// ...
-```
-
-## Fluxo de Dados
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        User Input                           │
-│                    (mouse, keyboard)                        │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Canvas.ts                              │
-│              (Event handlers, coordinates)                  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Active Tool                              │
-│        (SelectTool, DrawTool, TextTool, etc.)              │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      Actions                                │
-│           (addElement, setTool, zoomIn, etc.)              │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                       Store                                 │
-│                   (State + notify)                          │
-└─────────────────────────────────────────────────────────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              ▼               ▼               ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│    Canvas       │ │    Toolbar      │ │   SidePanel     │
-│   (render)      │ │   (update UI)   │ │   (update UI)   │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
-```
-
-## Como Adicionar uma Nova Ferramenta
-
-1. Crie o arquivo em `src/canvas/tools/NovaTool.ts`:
-
-```typescript
-import type { BaseTool, ToolContext } from './BaseTool';
-import type { Point } from '../../types';
-import { store } from '../../state/store';
-import * as actions from '../../state/actions';
-
-export const NovaTool: BaseTool = {
-  name: 'nova',
-  cursor: 'crosshair',
-
-  onActivate(context) {
-    context.canvas.style.cursor = this.cursor;
-  },
-
-  onMouseDown(_e, point, context) {
-    // Lógica ao pressionar mouse
-  },
-
-  onMouseMove(_e, point, context) {
-    // Lógica ao mover mouse
-  },
-
-  onMouseUp(_e, _point, _context) {
-    // Lógica ao soltar mouse
-  },
-};
-```
-
-2. Exporte em `src/canvas/tools/index.ts`:
-
-```typescript
-export { NovaTool } from './NovaTool';
-
-export const tools: Record<Tool, BaseTool> = {
-  // ...
-  nova: NovaTool,
-};
-```
-
-3. Adicione o tipo em `src/types/index.ts`:
-
-```typescript
-export type Tool = 'select' | 'move' | 'draw' | 'text' | 'shape' | 'arrow' | 'nova';
-```
-
-4. Adicione o botão na toolbar em `src/main.ts`.
-
-## Scripts
+<p align="center">
+  <h1 align="center">LineKit</h1>
+  <p align="center">A lightweight, open-source canvas drawing application built with TypeScript and HTML5 Canvas.<br/>No frameworks. No runtime dependencies. Just pure web.</p>
+</p>
+
+<p align="center">
+  <img src="docs/screenshot-main.png" alt="LineKit - Canvas Drawing App" width="100%" />
+</p>
+
+---
+
+## Features
+
+### Drawing Tools
+
+LineKit ships with **7 tools** accessible from the top toolbar:
+
+| Tool | Description |
+|------|-------------|
+| **Select** | Select, move, resize and rotate elements. Supports multi-select with Shift+Click and marquee selection. |
+| **Move** | Pan the canvas by clicking and dragging. |
+| **Draw** | Freehand drawing with customizable stroke width, color and opacity. |
+| **Text** | Click to place editable multi-line text blocks with full cursor and selection support. |
+| **Shape** | Draw geometric shapes with fill, stroke and border radius options. |
+| **Arrow** | Draw straight or curved arrows with auto-sized arrowheads. |
+| **Line** | Draw straight or curved lines with a draggable bezier control point. |
+
+### Shapes
+
+8 built-in shape types, each with full customization:
+
+`Rectangle` `Square` `Circle` `Ellipse` `Triangle` `Diamond` `Cylinder` `Pyramid`
+
+- Fill color & opacity
+- Stroke color, opacity & width
+- Border radius (for rectangles)
+
+---
+
+## Keyboard Shortcuts
+
+### Global
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + Z` | Undo |
+| `Ctrl + Y` / `Ctrl + Shift + Z` | Redo |
+| `Ctrl + C` | Copy selected elements |
+| `Ctrl + V` | Paste elements |
+| `Delete` / `Backspace` | Delete selected elements |
+| `Escape` | Switch to Select tool / commit text |
+| `Shift + Click` | Add or remove element from selection |
+
+### Text Editing
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl + A` | Select all text |
+| `Ctrl + C` / `Ctrl + X` / `Ctrl + V` | Copy / Cut / Paste |
+| `Arrow keys` | Move cursor |
+| `Shift + Arrow keys` | Extend text selection |
+| `Home` / `End` | Jump to line start / end |
+| `Shift + Home` / `Shift + End` | Select to line start / end |
+| `Enter` | Insert new line |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18+
+
+### Install & Run
 
 ```bash
-npm run dev    # Servidor de desenvolvimento
-npm run build  # Build de produção
-npm run preview # Preview do build
+git clone https://github.com/your-username/g-draw.git
+cd g-draw/client-g-draw
+npm install
+npm run dev
 ```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+Static files will be output to the `dist/` folder. Serve them with any static file server.
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+---
+
+## Tech Stack
+
+| | |
+|---|---|
+| **Language** | TypeScript |
+| **Rendering** | HTML5 Canvas 2D API |
+| **Build Tool** | Vite |
+| **Fonts** | Google Fonts (19 families) |
+| **Dependencies** | Zero runtime dependencies |
+
+
+---
+
+## Roadmap
+
+### 🚀 Upcoming Features
+
+#### Phase 1: Collaboration & Streaming
+
+- [ ] **Live Collaborative Editing** — Multiple users drawing on the same canvas in real-time
+- [ ] **WebSocket Integration** — Server-side syncing for collaborative sessions
+- [ ] **User Cursors** — See other users' cursors and selections
+- [ ] **Frame Management** — Named frames/artboards for organizing designs
+- [ ] **Community Frame Editor** — Stream frames to community for collaborative editing
+
+
+
+## Community
+
+### Join Us
+
+We're building LineKit as an open-source project with community input.
+
+- **GitHub Issues** — Report bugs or request features
+- **Discord Community** *(coming soon)* — Chat with developers and users
+- **Live Streams** — Weekly design sessions and collaborative frame editing
+- **Contributions** — All skill levels welcome!
+
+### How to Contribute
+
+1. **Report Issues** — Find a bug? Open an issue with a screenshot
+2. **Suggest Features** — Have an idea? Discuss it in issues or Discord
+3. **Submit Code** — Fork, branch, commit, and open a PR
+4. **Documentation** — Improve README, architecture docs, or code comments
+5. **Design Help** — Suggest UI/UX improvements
+
+### Getting Started as a Contributor
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -m 'Add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Open a Pull Request
+
+Please read [ARCHITECTURE.md](./ARCHITECTURE.md) for an in-depth guide to the codebase.
+
+
+**Made with ❤️ by the LineKit community**

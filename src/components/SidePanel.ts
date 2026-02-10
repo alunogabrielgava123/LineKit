@@ -44,6 +44,43 @@ export function setupSidePanel(canvas: Canvas) {
     }
   }
 
+  // Font family dropdown
+  const fontTrigger = $<HTMLButtonElement>('#font-trigger')!;
+  const fontDropdown = $<HTMLDivElement>('#font-dropdown')!;
+  const fontOptions = $all<HTMLButtonElement>('.font-option');
+
+  function toggleFontDropdown() {
+    fontDropdown.classList.toggle('hidden');
+  }
+
+  function closeFontDropdown() {
+    fontDropdown.classList.add('hidden');
+  }
+
+  fontTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleFontDropdown();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!fontDropdown.contains(e.target as Node) && e.target !== fontTrigger) {
+      closeFontDropdown();
+    }
+  });
+
+  fontOptions.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      fontOptions.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      const family = btn.dataset.font || 'Inter, sans-serif';
+      const label = btn.dataset.label || 'Inter';
+      actions.setTextFontFamily(family);
+      fontTrigger.style.fontFamily = family;
+      fontTrigger.childNodes[0].textContent = label + '\n';
+      closeFontDropdown();
+    });
+  });
+
   // Font size buttons
   const sizeButtons = $all<HTMLButtonElement>('.size-btn');
   sizeButtons.forEach((btn) => {

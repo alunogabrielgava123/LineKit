@@ -9,6 +9,7 @@ export const ZOOM_FACTOR = 1.2;
 
 // Default settings
 export const DEFAULT_TEXT_SIZE = 24;
+export const DEFAULT_TEXT_FONT_FAMILY = 'Inter, sans-serif';
 export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_OPACITY = 1;
 export const DEFAULT_STROKE_WIDTH = 4;

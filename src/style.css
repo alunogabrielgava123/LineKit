@@ -143,6 +143,33 @@ button:active {
   }
 }
 
+.menu-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  text-align: center;
+  min-width: 200px;
+}
+
+.menu-coming-soon-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.menu-coming-soon-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.menu-coming-soon-subtitle {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+}
+
 .menu-item {
   display: flex;
   align-items: center;
@@ -271,6 +298,80 @@ button:active {
   width: 20px;
   background-color: hsl(var(--foreground));
   border-radius: 2px;
+}
+
+/* Font select dropdown */
+.font-select-wrapper {
+  position: relative;
+}
+
+.font-trigger {
+  width: 100%;
+  height: 2.25rem;
+  padding: 0 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background-color: hsl(var(--muted));
+  border-radius: var(--radius);
+  text-align: left;
+  justify-content: space-between;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.font-trigger:hover {
+  background-color: hsl(var(--accent));
+}
+
+.font-trigger svg {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.font-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  animation: fadeIn 0.12s ease;
+}
+
+.font-dropdown.hidden {
+  display: none;
+}
+
+.font-option {
+  width: 100%;
+  height: auto;
+  padding: 7px 10px;
+  font-size: 0.875rem;
+  text-align: left;
+  justify-content: flex-start;
+  border-radius: calc(var(--radius) - 2px);
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+}
+
+.font-option:hover {
+  background-color: hsl(var(--accent));
+}
+
+.font-option.active {
+  background-color: hsl(var(--accent));
+  box-shadow: inset 2px 0 0 hsl(var(--ring));
 }
 
 .style-btn {

@@ -5,6 +5,7 @@ export function setupMenu() {
   const menuDropdown = $<HTMLDivElement>('#menu-dropdown')!;
 
   menuBtn.addEventListener('click', (e) => {
+    console.log("click menu options");
     e.stopPropagation();
     menuDropdown.classList.toggle('hidden');
   });

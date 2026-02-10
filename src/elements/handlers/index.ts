@@ -40,10 +40,11 @@ export function rotateElement(
   el: CanvasElement,
   angle: number,
   pivotX: number,
-  pivotY: number
+  pivotY: number,
+  ctx?: CanvasRenderingContext2D
 ): void {
   const handler = elementHandlers[el.type] as ElementHandler<typeof el.data>;
-  handler.rotate(el.data, angle, pivotX, pivotY);
+  handler.rotate(el.data, angle, pivotX, pivotY, ctx);
 }
 
 export function getBoundingBox(

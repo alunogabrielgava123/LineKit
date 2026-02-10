@@ -44,7 +44,7 @@ function getLineEnd(text: string, cursorPos: number): number {
 function setupFont(ctx: CanvasRenderingContext2D, block: TextBlock) {
   const fontWeight = block.fontStyle === 'bold' ? 'bold' : 'normal';
   const fontStyleCss = block.fontStyle === 'italic' ? 'italic' : 'normal';
-  ctx.font = `${fontStyleCss} ${fontWeight} ${block.fontSize}px sans-serif`;
+  ctx.font = `${fontStyleCss} ${fontWeight} ${block.fontSize}px ${block.fontFamily || 'sans-serif'}`;
 }
 
 function getCursorPosFromClick(
@@ -117,17 +117,28 @@ export function drawText(
 
   ctx.save();
 
+  setupFont(ctx, block);
+  const lines = block.text.split('\n');
+  const lineHeight = fontSize * 1.25;
+
   if (block.rotation !== 0) {
-    ctx.translate(block.x, block.y);
+    // Calculate bounding box dimensions to rotate around its center
+    let maxWidth = 0;
+    for (const line of lines) {
+      const w = ctx.measureText(line).width;
+      if (w > maxWidth) maxWidth = w;
+    }
+    const totalHeight = lines.length * lineHeight;
+    const centerX = block.x + maxWidth / 2;
+    const centerY = block.y - fontSize * 0.75 + totalHeight / 2;
+
+    ctx.translate(centerX, centerY);
     ctx.rotate(block.rotation);
-    ctx.translate(-block.x, -block.y);
+    ctx.translate(-centerX, -centerY);
   }
 
   ctx.globalAlpha = block.opacity ?? 1;
-  setupFont(ctx, block);
   ctx.fillStyle = block.color;
-  const lines = block.text.split('\n');
-  const lineHeight = fontSize * 1.25;
 
   // Draw selection highlight
   if (showCursor && selectionStart !== null && selectionStart !== cursorPos) {
@@ -251,6 +262,7 @@ export const TextTool: BaseTool = {
       x: point.x,
       y: point.y,
       fontSize: state.textSize,
+      fontFamily: state.textFontFamily,
       fontStyle: state.textStyle,
       color: state.textColor,
       opacity: state.textOpacity,
