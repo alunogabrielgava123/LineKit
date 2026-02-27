@@ -1,9 +1,17 @@
-import { createCanvas } from './canvas';
-import { setupMenu, setupToolbar, setupShapePanel, setupSidePanel, setupZoomControls, setupHistoryControls, setupElementInfoPanel } from './components';
-import './style.css';
+import { createCanvas } from "./canvas";
+import {
+  setupMenu,
+  setupToolbar,
+  setupShapePanel,
+  setupSidePanel,
+  setupZoomControls,
+  setupHistoryControls,
+  setupElementInfoPanel,
+} from "./components";
+import "./style.css";
 
 // Create HTML structure
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <canvas id='canvas'></canvas>
   <div id='header'>
     <button id='menu-btn'>
@@ -385,7 +393,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `;
 
 // Initialize canvas
-const canvasElement = document.querySelector<HTMLCanvasElement>('#canvas')!;
+const canvasElement = document.querySelector<HTMLCanvasElement>("#canvas")!;
 const canvas = createCanvas(canvasElement);
 
 // Setup UI components
@@ -396,3 +404,33 @@ setupSidePanel(canvas);
 setupZoomControls(canvas);
 setupHistoryControls(canvas);
 setupElementInfoPanel(canvas);
+
+//google anality 4
+const GA_ID = import.meta.env.VITE_GA4_ID as string | undefined;
+
+function loadGA4() {
+  if (!GA_ID) return;
+  if (window.__gaLoaded) return;
+  window.__gaLoaded = true;
+
+  // script gtag.js
+  const s1 = document.createElement("script");
+  s1.async = true;
+  s1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  document.head.appendChild(s1);
+
+  // init dataLayer / gtag
+  window.dataLayer = window.dataLayer || [];
+  window.gtag =
+    window.gtag ||
+    function (...args: any[]) {
+      window.dataLayer.push(args);
+    };
+
+  window.gtag("js", new Date());
+  window.gtag("config", GA_ID, {
+    anonymize_ip: true, // opcional
+  });
+}
+
+loadGA4();
